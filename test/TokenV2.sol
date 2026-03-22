@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import {UpgradeableToken} from "../src/UpgradeableToken.sol";
 
@@ -10,11 +10,11 @@ contract TokenV2 is UpgradeableToken {
     }
 
     // keccak256(abi.encode(uint256(keccak256("foundry-base.storage.V2")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant V2StorageLocation = 0x79f293f4d15abebddad769280bece7705fd560fe90cd08a1964c06d945367b00;
+    bytes32 private constant V2_STORAGE_LOCATION = 0x79f293f4d15abebddad769280bece7705fd560fe90cd08a1964c06d945367b00;
 
     function _getV2Storage() private pure returns (V2Storage storage $) {
         assembly {
-            $.slot := V2StorageLocation
+            $.slot := V2_STORAGE_LOCATION
         }
     }
 

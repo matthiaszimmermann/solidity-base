@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
-import {Test, Vm, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {MultiSigWallet} from "../src/MultiSigWallet.sol";
 import {TestContract} from "./TestContract.sol";
@@ -24,7 +24,7 @@ contract MultiSigWalletTest is Test {
         testContract = new TestContract();
     }
 
-    function test_MultiSigSetup() public {
+    function test_MultiSigSetup() public view {
         // GIVEN + WHEN setup
         // THEN
         address[] memory walletOwners = wallet.getOwners();
@@ -37,34 +37,34 @@ contract MultiSigWalletTest is Test {
 
     function test_MultiSigSubmitTransaction() public {
         // GIVEN
-        bytes memory data_in = testContract.getData();
-        uint256 value_in = 0;
+        bytes memory dataIn = testContract.getData();
+        uint256 valueIn = 0;
 
         // WHEN
         vm.startPrank(owner1);
-        wallet.submitTransaction(address(testContract), value_in, data_in);
+        wallet.submitTransaction(address(testContract), valueIn, dataIn);
         vm.stopPrank();
 
         // THEN
         assertEq(wallet.getTransactionCount(), 1, "unexpected transaction count");
 
-        (address to, uint256 value_out, bytes memory data_out, bool executed, uint256 numConfirmations) =
+        (address to, uint256 valueOut, bytes memory dataOut, bool executed, uint256 numConfirmations) =
             wallet.getTransaction(0);
 
         assertEq(to, address(testContract), "unexpected to");
-        assertEq(value_out, value_in, "unexpected value");
-        assertEq(data_out, data_in, "unexpected data");
+        assertEq(valueOut, valueIn, "unexpected value");
+        assertEq(dataOut, dataIn, "unexpected data");
         assertEq(executed, false, "unexpected executed");
         assertEq(numConfirmations, 0, "unexpected numConfirmations");
     }
 
     function test_MultiSigConfirmTransaction() public {
         // GIVEN
-        bytes memory data_in = testContract.getData();
-        uint256 value_in = 0;
+        bytes memory dataIn = testContract.getData();
+        uint256 valueIn = 0;
 
         vm.startPrank(owner1);
-        wallet.submitTransaction(address(testContract), value_in, data_in);
+        wallet.submitTransaction(address(testContract), valueIn, dataIn);
         vm.stopPrank();
 
         // WHEN - onwer1 confirms
@@ -84,5 +84,68 @@ contract MultiSigWalletTest is Test {
         // THEN
         (,,,, numConfirmations) = wallet.getTransaction(0);
         assertEq(numConfirmations, 2, "unexpected numConfirmations (after owner 2)");
+    }
+
+    function test_MultiSigExecuteTransaction() public {
+        // GIVEN - submit and fully confirm a transaction
+        bytes memory dataIn = testContract.getData();
+
+        vm.prank(owner1);
+        wallet.submitTransaction(address(testContract), 0, dataIn);
+
+        vm.prank(owner1);
+        wallet.confirmTransaction(0);
+
+        vm.prank(owner2);
+        wallet.confirmTransaction(0);
+
+        // WHEN
+        vm.prank(owner1);
+        wallet.executeTransaction(0);
+
+        // THEN
+        (,,, bool executed,) = wallet.getTransaction(0);
+        assertEq(executed, true, "tx should be executed");
+        assertEq(testContract.i(), 123, "testContract.i should be updated");
+    }
+
+    function test_MultiSigExecuteTransactionInsufficientConfirmations() public {
+        // GIVEN - submit but only one confirmation (need 2)
+        bytes memory dataIn = testContract.getData();
+
+        vm.prank(owner1);
+        wallet.submitTransaction(address(testContract), 0, dataIn);
+
+        vm.prank(owner1);
+        wallet.confirmTransaction(0);
+
+        // WHEN + THEN
+        vm.expectRevert("cannot execute tx");
+
+        vm.prank(owner1);
+        wallet.executeTransaction(0);
+    }
+
+    function test_MultiSigRevokeConfirmation() public {
+        // GIVEN - submit and confirm as owner1
+        bytes memory dataIn = testContract.getData();
+
+        vm.prank(owner1);
+        wallet.submitTransaction(address(testContract), 0, dataIn);
+
+        vm.prank(owner1);
+        wallet.confirmTransaction(0);
+
+        (,,,, uint256 numConfirmations) = wallet.getTransaction(0);
+        assertEq(numConfirmations, 1, "unexpected numConfirmations (before revoke)");
+
+        // WHEN
+        vm.prank(owner1);
+        wallet.revokeConfirmation(0);
+
+        // THEN
+        (,,,, numConfirmations) = wallet.getTransaction(0);
+        assertEq(numConfirmations, 0, "unexpected numConfirmations (after revoke)");
+        assertEq(wallet.isConfirmed(0, owner1), false, "owner1 should not be confirmed");
     }
 }

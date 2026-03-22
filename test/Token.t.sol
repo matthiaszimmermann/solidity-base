@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
-import {UpgradeableToken} from "../src/UpgradeableToken.sol";
 import {TokenTestBase} from "./TokenBase.t.sol";
 
 contract TokenTest is TokenTestBase {
@@ -35,7 +34,7 @@ contract TokenTest is TokenTestBase {
 
         // WHEN
         vm.startPrank(from);
-        token.transfer(to, amount);
+        require(token.transfer(to, amount), "transfer failed");
 
         // THEN
         assertEq(token.balanceOf(from), 1, "unexpected balance for 'from' account (after)");

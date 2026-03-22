@@ -11,11 +11,12 @@ A sample upgradeable ERC20 contract and corresponding test cases are included to
 
 ## Sample Contracts 
 
-The repository provides two sample Solidity smart contracts in subfolder `src`.
+The repository provides sample Solidity smart contracts in subfolder `src`.
 
-- **Counter**: A very simple smart contract
-- **MultiSigWallet**: A simple multi sig wallet contract from Cyfrin
-- **Token**: An upgradeable token contract using OpenZeppelin V5
+- **Counter**: A minimal contract — a good starting point for new contracts
+- **MultiSigWallet**: A multi-sig wallet requiring M-of-N owner confirmations before executing transactions (from Cyfrin)
+- **Token**: A simple non-upgradeable ERC20 token using OpenZeppelin V5
+- **UpgradeableToken**: An upgradeable ERC20 token using the OpenZeppelin V5 transparent proxy pattern
 
 Corresponding tests are located in subfolder `test`.
 
@@ -82,7 +83,7 @@ forge coverage
 
 ### Contract Storage Layout
 
-Check storage layout for classical (non upgradeable) contracts.
+Check storage layout for classical (non-upgradeable) contracts.
 
 ```
 forge clean
@@ -90,13 +91,16 @@ forge build
 forge inspect MultiSigWallet storage
 ```
 
-The storage layout of upgradeable contracts like `Token` cannot be inspected directly. 
-In addition, OpenZeppelin V5, the namespace storage layout is not yet supported by `forge inspect`, see [foundry issue #7662](https://github.com/foundry-rs/foundry/issues/7662).
+The storage layout of upgradeable contracts like `UpgradeableToken` cannot be inspected directly.
+In addition, OpenZeppelin V5 namespace storage layout is not yet supported by `forge inspect`, see [foundry issue #7662](https://github.com/foundry-rs/foundry/issues/7662).
 
-A partial workaround is shown below (does not show struct organization).
+A partial workaround uses `ERC20StorageInspector`, a dev utility contract located in `test/`.
+Run the following to inspect it (does not show struct organization).
 
 ```
-forge inspect ERC20StorageInspector storage
+forge clean
+forge build
+forge inspect test/ERC20StorageInspector.sol:ERC20StorageInspector storage
 ```
 
 ## Interact with Deployed Contracts
@@ -110,20 +114,24 @@ forge inspect ERC20StorageInspector storage
 1. Start `anvil` with it
 
 ```shell
-uv run python3 app/init.py > .env
+(cd app && uv run python3 init.py) > .env
 unset ETH_ADDRESS ETH_PRIVATE_KEY ETH_MNEMONIC
 export ETH_MNEMONIC=$(grep ETH_MNEMONIC .env | cut -d\" -f2)
 anvil --mnemonic $ETH_MNEMONIC
 ```
 
-### Deploy Token Contract to Local Anvil
+### Deploy Contracts to Local Anvil
 
 1. Open a new shell
-1. Run deploy script with `forge script` using the new private key in the `.env` file
+1. Run a deploy script with `forge script` using the private key from the `.env` file
 1. Record the address of the newly deployed contract (used as `<contract-address>` below)
 
 ```shell
+# Deploy the upgradeable token (SimpleToken + UpgradeableToken + ProxyAdmin)
 forge script script/UpgradeableToken.s.sol --fork-url http://127.0.0.1:8545 --broadcast --private-key $(grep ETH_PRIVATE_KEY .env | cut -d= -f2)
+
+# Deploy a MultiSigWallet
+forge script script/MultiSigWallet.s.sol --fork-url http://127.0.0.1:8545 --broadcast --private-key $(grep ETH_PRIVATE_KEY .env | cut -d= -f2)
 ```
 
 ### Interact with the Token Contract
@@ -132,7 +140,7 @@ forge script script/UpgradeableToken.s.sol --fork-url http://127.0.0.1:8545 --br
 1. Start a python shell
 
 ```shell
-eval $(echo export $(grep MNEMONIC .env))
+export ETH_MNEMONIC=$(grep ETH_MNEMONIC .env | cut -d\" -f2)
 cd app
 uv run python
 ```
@@ -153,9 +161,9 @@ w3 = Web3(Web3.HTTPProvider(w3_uri))
 node = Node(w3)
 
 # print network info
-node.chain_id
-node.latest_block
-node.timestamp
+node.chain_id()
+node.latest_block()
+node.timestamp()
 
 # create account using the env variable mnemonic
 w = Wallet.from_mnemonic(w3, os.getenv('ETH_MNEMONIC'))
@@ -171,6 +179,7 @@ tx_singed = w.sign(tx)
 tx_hash = w.send(tx_singed)
 
 # create token object
+# check deploy script output for token address
 token_address = "<contract-address>"
 token = Contract(w3, "IERC20Metadata", token_address)
 

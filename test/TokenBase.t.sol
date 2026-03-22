@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -46,13 +46,13 @@ contract TokenTestBase is Test {
 
     function _fund(address account, uint256 amount) internal {
         vm.startPrank(deployer);
-        token.transfer(account, amount);
+        require(token.transfer(account, amount), "transfer failed");
         vm.stopPrank();
     }
 
     function _defund(address account) internal {
         vm.startPrank(account);
-        token.transfer(deployer, token.balanceOf(account));
+        require(token.transfer(deployer, token.balanceOf(account)), "transfer failed");
         vm.stopPrank();
     }
 }

@@ -1,12 +1,10 @@
 import json
 import logging
 
-from functools import wraps
 from typing import Any, Dict
 
 from web3 import Web3
 from web3.contract import Contract as Web3Contract
-from web3.exceptions import TimeExhausted
 from web3.types import FilterParams
 
 from web3utils.wallet import Wallet
@@ -91,12 +89,11 @@ class Contract:
                 wallet = tx_params['from']
                 tx = self._build_tx(func_name, function_args, tx_params)
                 tx_signed = wallet.sign(tx)
-                tx_hash = wallet.send(tx_signed)
-                return tx_hash
+                return wallet.send(tx_signed)
 
             except Exception as e:
                 logging.warning(f"Error sending transaction for function '{func_name}': {e}")
-                return tx_hash
+                raise
 
         # add docstrings signature and selector
         self._amend_method(write_method, func_name)
@@ -186,4 +183,4 @@ class Contract:
             raise ValueError(f"Error: The file {abi_path} is not a valid JSON file.")
 
         except ValueError as ve:
-            ValueError(f"Error: {ve}")
+            raise ValueError(f"Error: {ve}") from ve

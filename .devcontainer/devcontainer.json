@@ -1,13 +1,13 @@
 {
 	"name": "foundry-base",
-	"workspaceFolder": "/workspaces/foundry-base",
+	"workspaceFolder": "/workspaces/solidity-base",
 	"build": {
 		"context": "..",
 		"dockerfile": "Dockerfile",
 		"args": {
-			"DEBIAN_VERSION": "bullseye",
-			"UV_VERSION": "0.5.10",
-			"PYTHON_VERSION": "3.12"
+			"DEBIAN_VERSION": "bookworm",
+			"UV_VERSION": "0.10.12",
+			"PYTHON_VERSION": "3.13"
 		}
 	},
 
@@ -29,7 +29,8 @@
 				"JuanBlanco.solidity",
 				"esbenp.prettier-vscode",
 				"zhuangtongfa.Material-theme",
-				"monokai.theme-monokai-pro-vscode"
+				"monokai.theme-monokai-pro-vscode",
+				"anthropic.claude-code"
 			]
 		}
 	},

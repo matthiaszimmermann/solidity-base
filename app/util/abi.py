@@ -31,4 +31,4 @@ def load_abi(contract:str, out_path:str = FOUNDRY_OUT) -> Dict[str, Any]:
         raise ValueError(f"Error: The file {abi_path} is not a valid JSON file.")
 
     except ValueError as ve:
-        ValueError(f"Error: {ve}")
+        raise ValueError(f"Error: {ve}") from ve

@@ -95,10 +95,10 @@ class Wallet:
 
     def sign(self, tx: dict[str, Any], nonce=None):
         # provided nonce overrides tx nonce
-        if nonce:
+        if nonce is not None:
             tx['nonce'] = nonce
         # use wallet nonce if tx does not provide nonce
-        elif not tx['nonce']:
+        elif tx.get('nonce') is None:
             tx['nonce'] = self.nonce()
 
         private_key = bytes(self.account.key)
@@ -193,7 +193,7 @@ class Wallet:
         w3: Web3,
         mnemonic: str,
         index: int = INDEX_DEFAULT,
-        password: str = generate_password(),
+        password: str | None = None,
         path: str = ETHEREUM_DEFAULT_PATH,
     ) -> "Wallet":
         """Create a new wallet from a provided mnemonic."""
@@ -209,6 +209,9 @@ class Wallet:
         # modify path if index is provided
         if index:
             wallet.path = "/".join(path.split("/")[:-1]) + f"/{index}"
+
+        if not password:
+            password = generate_password()
 
         wallet.password = password
         wallet.account = Account.from_mnemonic(mnemonic, account_path=wallet.path)

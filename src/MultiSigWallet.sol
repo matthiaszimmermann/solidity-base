@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.24;
 
 // https://www.cyfrin.io/glossary/multisig-wallet-solidity-code-example
 contract MultiSigWallet {
