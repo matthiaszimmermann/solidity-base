@@ -1,4 +1,4 @@
-# Foundry Base Repository
+# Solidity Base Repository
 
 This repository provides a complete development environment for building and testing Solidity smart contracts using Foundry within a VSCode DevContainer setup.
 
