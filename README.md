@@ -107,6 +107,9 @@ forge inspect test/ERC20StorageInspector.sol:ERC20StorageInspector storage
 
 ### Start a Local Anvil Chain
 
+> **Security note:** The `.env` file stores your private key in plaintext and is intended for local Anvil development only.
+> Never fund this account on mainnet or any public network, and never reuse these keys outside this local setup.
+
 1. Open a new terminal
 1. Reset the `.env` file with a newly created account
 1. Unset old env variables
