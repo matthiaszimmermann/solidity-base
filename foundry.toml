@@ -5,6 +5,9 @@ libs = ["lib"]
 solc_version = "0.8.28"
 
 gas_reports = [
-    "Counter", 
+    "Counter",
     "Token"
 ]
+
+[profile.ci]
+fuzz = { runs = 1000 }
