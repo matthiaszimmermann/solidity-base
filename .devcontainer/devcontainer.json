@@ -1,6 +1,5 @@
 {
-	"name": "foundry-base",
-	"workspaceFolder": "/workspaces/solidity-base",
+	"name": "solidity-base",
 	"build": {
 		"context": "..",
 		"dockerfile": "Dockerfile",

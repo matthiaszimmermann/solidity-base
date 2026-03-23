@@ -40,5 +40,4 @@ RUN curl -L https://foundry.paradigm.xyz | bash && $HOME/.foundry/bin/foundryup
 # Add Foundry to path
 ENV PATH="$HOME/.foundry/bin:$PATH"
 
-# Set final working directory
-WORKDIR /workspace
+WORKDIR $HOME
